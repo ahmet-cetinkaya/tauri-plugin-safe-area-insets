@@ -102,20 +102,16 @@ pub fn run() {
       import { getInsets } from "tauri-plugin-safe-area-insets";
 
       async function setupSafeAreaInsets() {
-        try {
-          const insets = await getInsets();
-          document.documentElement.style.setProperty("--safe-area-inset-top", `${insets.top}px`);
-          document.documentElement.style.setProperty("--safe-area-inset-bottom", `${insets.bottom}px`);
-          document.documentElement.style.setProperty("--safe-area-inset-left", `${insets.left}px`);
-          document.documentElement.style.setProperty("--safe-area-inset-right", `${insets.right}px`);
-        } catch (error) {
+        const insets = await getInsets().catch(error => {
           console.warn("Failed to get safe area insets:", error);
-          // Set fallback values
-          document.documentElement.style.setProperty("--safe-area-inset-top", "0px");
-          document.documentElement.style.setProperty("--safe-area-inset-bottom", "0px");
-          document.documentElement.style.setProperty("--safe-area-inset-left", "0px");
-          document.documentElement.style.setProperty("--safe-area-inset-right", "0px");
-        }
+          // Return fallback values on error
+          return { top: 0, bottom: 0, left: 0, right: 0 };
+        });
+
+        document.documentElement.style.setProperty("--safe-area-inset-top", `${insets.top}px`);
+        document.documentElement.style.setProperty("--safe-area-inset-bottom", `${insets.bottom}px`);
+        document.documentElement.style.setProperty("--safe-area-inset-left", `${insets.left}px`);
+        document.documentElement.style.setProperty("--safe-area-inset-right", `${insets.right}px`);
       }
 
       // Call after DOM is ready
@@ -202,18 +198,18 @@ function App() {
 import { getInsets } from "tauri-plugin-safe-area-insets";
 
 async function applySafeArea() {
-  try {
-    const insets = await getInsets();
-    console.log(insets); // { top: 47, bottom: 34, left: 0, right: 0 }
-
-    // Apply insets to your UI
-    document.body.style.paddingTop = `${insets.top}px`;
-    document.body.style.paddingBottom = `${insets.bottom}px`;
-    document.body.style.paddingLeft = `${insets.left}px`;
-    document.body.style.paddingRight = `${insets.right}px`;
-  } catch (error) {
+  const insets = await getInsets().catch(error => {
     console.error("Failed to get insets:", error);
-  }
+    return { top: 0, bottom: 0, left: 0, right: 0 };
+  });
+
+  console.log(insets); // e.g. { top: 47, bottom: 34, left: 0, right: 0 }
+
+  // Apply insets to your UI
+  document.body.style.paddingTop = `${insets.top}px`;
+  document.body.style.paddingBottom = `${insets.bottom}px`;
+  document.body.style.paddingLeft = `${insets.left}px`;
+  document.body.style.paddingRight = `${insets.right}px`;
 }
 
 // Call after DOM is ready
